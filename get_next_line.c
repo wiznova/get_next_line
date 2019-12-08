@@ -6,7 +6,7 @@
 /*   By: skhalil <skhalil@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2019/12/06 13:23:27 by skhalil        #+#    #+#                */
-/*   Updated: 2019/12/08 14:40:22 by skhalil       ########   odam.nl         */
+/*   Updated: 2019/12/08 16:17:01 by skhalil       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,12 +36,12 @@ ssize_t	wline_from_linebuffer(t_fd_buffer *current, char **line)
 
 	lb_len = ft_strlen(current->linebuffer);
 	i = 0;
+	if (*line != NULL)
+		free(*line);
 	while (current->linebuffer[i])
 	{
 		if (current->linebuffer[i] == '\n')
 		{
-			if (*line != NULL)
-				free(*line);
 			*line = ft_substr(current->linebuffer, 0, i);
 			temp = current->linebuffer;
 			current->linebuffer = ft_substr(current->linebuffer, i + 1, lb_len);
@@ -51,7 +51,15 @@ ssize_t	wline_from_linebuffer(t_fd_buffer *current, char **line)
 		i++;
 	}
 	if (current->linebuffer[i] == '\0') //should it return last line?
+	{
+		// if (lb_len == 0)
+		// 	*line = NULL;
+		// else
+		// 	*line = ft_substr(current->linebuffer, 0, lb_len);
+		// free(current->linebuffer);
+		// current->linebuffer = NULL;
 		return (0);
+	}
 	return (-1);
 }
 
@@ -74,7 +82,7 @@ ssize_t	read_next(int fd, t_fd_buffer *current)
 		temp = current->linebuffer;
 		len = ft_strlen(current->linebuffer);
 		current->linebuffer = (char *)calloc(len + BUFFER_SIZE + 1, 1);
-		ft_strlcat(current->linebuffer, temp, len + BUFFER_SIZE + 1);
+		ft_strlcpy(current->linebuffer, temp, len + BUFFER_SIZE + 1);
 		ft_strlcat(current->linebuffer, read_buf, len + BUFFER_SIZE + 1);
 	}
 	free(temp);
@@ -97,9 +105,13 @@ int		get_next_line(int fd, char **line)
 		current = current->next;
 	if (current == NULL)
 		current = new_fd_buffer(fd);
-	while ((has_newline(&(current->linebuffer)) == 0 && ret_check != 0) || current->linebuffer == NULL) //check iff LB cane be returned NULL from read_next
+	if (current->linebuffer == NULL)
+		ret_check = read_next(fd, current);
+	ret_check = wline_from_linebuffer(current, line);
+	if (ret_check == 1)
+		return (ret_check);
+	while ((has_newline(&(current->linebuffer)) == 0 && ret_check != 0)) //check iff LB cane be returned NULL from read_next
 		ret_check = read_next(fd, current); //check errors in read 0 or -1
-	
 	ret_check = wline_from_linebuffer(current, line);
 	return (ret_check);
 }

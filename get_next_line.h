@@ -6,7 +6,7 @@
 /*   By: skhalil <skhalil@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2019/12/06 13:23:22 by skhalil        #+#    #+#                */
-/*   Updated: 2019/12/08 14:45:08 by skhalil       ########   odam.nl         */
+/*   Updated: 2019/12/08 17:27:45 by skhalil       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,10 @@ char			*ft_substr(char const *s, unsigned int start, size_t len);
 size_t			ft_strlcat(char *dst, const char *src, size_t dstsize);
 size_t			ft_strlen(const char *s);
 
+int		read_to_rbuf_til_newline(int fd, char *r_buf);
+void	ft_strnjoin(char *s1, char *s2, int	stopper);
+void	empty_before_newline(char *r_buf);
+int		newline_index(char *str);
 
 
 #endif
