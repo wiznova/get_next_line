@@ -6,7 +6,7 @@
 /*   By: skhalil <skhalil@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2019/12/06 13:23:22 by skhalil        #+#    #+#                */
-/*   Updated: 2019/12/06 21:19:19 by skhalil       ########   odam.nl         */
+/*   Updated: 2019/12/08 14:45:08 by skhalil       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@
 
 typedef struct	 		s_fd_buffer
 {
-	int					*fd;
+	int					*fd_saved;
 	int					*lb_index;
 	char				*linebuffer;
 	struct s_fd_buffer	*next;

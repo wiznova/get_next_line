@@ -6,7 +6,7 @@
 /*   By: skhalil <skhalil@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2019/12/06 13:23:29 by skhalil        #+#    #+#                */
-/*   Updated: 2019/12/06 21:31:19 by skhalil       ########   odam.nl         */
+/*   Updated: 2019/12/08 13:48:16 by skhalil       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -140,8 +140,8 @@ t_fd_buffer		*new_fd_buffer(int fd)
 
 	ret = (t_fd_buffer *)malloc(sizeof(t_fd_buffer));
 	
-	ret->fd = (int *)malloc(sizeof(int));
-	*(ret->fd) = fd;
+	ret->fd_saved = (int *)malloc(sizeof(int));
+	*(ret->fd_saved) = fd;
 
 	ret->lb_index = (int *)malloc(sizeof(int));
 	*(ret->lb_index) = 0;
