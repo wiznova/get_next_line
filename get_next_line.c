@@ -91,12 +91,19 @@ void	read_from_buf(char **line, char *r_buf)
 	i = 0;
 	nl_i = newline_index(r_buf);
 	*line = (char *)calloc((nl_i + 1) + 1, 1);
-	while (i < nl_i)
-	{
-		(*line)[i] = r_buf[i];
-		i++;
-	}
-	(*line)[i] = '\n';
+	if (nl_i >= 0)
+		while (i < nl_i)
+		{
+			(*line)[i] = r_buf[i];
+			i++;
+		}
+	else
+		while (r_buf[i])
+		{
+			(*line)[i] = r_buf[i];
+			i++;
+		}
+	(*line)[i] = '\0';
 }
 
 int		get_next_line(int fd, char **line)
@@ -107,7 +114,6 @@ int		get_next_line(int fd, char **line)
 	gnl_state = -1;
 	if (r_buf == NULL)
 		r_buf = (char *)calloc(BUFFER_SIZE + 1, 1);
-
 	if (newline_index(r_buf) != -1)
 	{
 		gnl_state = 1;
@@ -122,6 +128,11 @@ int		get_next_line(int fd, char **line)
 			read_from_buf(line, r_buf);
 			empty_before_newline(&r_buf);
 		}
+		else if (gnl_state == 0)
+		{
+			read_from_buf(line, r_buf);
+			free(r_buf);
+		}	
 		else
 			return (gnl_state);
 	}
