@@ -1,122 +1,129 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        ::::::::            */
-/*   get_next_line.c                                    :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: skhalil <skhalil@student.codam.nl>           +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2019/12/06 13:23:27 by skhalil        #+#    #+#                */
-/*   Updated: 2019/12/08 16:17:01 by skhalil       ########   odam.nl         */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "get_next_line.h"
 
-int		has_newline(char **str)
-{
-	int	i;
 
-	i = 0;
-	if ((*str) == NULL)
-		return (-1);
-	while ((*str)[i] != '\0')
-	{
-		if ((*str)[i] == '\n')
-			return (1);
-		i++;
-	}
-	return (0);
-}
 
-ssize_t	wline_from_linebuffer(t_fd_buffer *current, char **line)
+int		newline_index(char *str) //returns index of newline in a string, or -1
 {
 	int		i;
-	char	*temp;
-	size_t	lb_len;
 
-	lb_len = ft_strlen(current->linebuffer);
 	i = 0;
-	if (*line != NULL)
-		free(*line);
-	while (current->linebuffer[i])
+	while (str[i])
 	{
-		if (current->linebuffer[i] == '\n')
-		{
-			*line = ft_substr(current->linebuffer, 0, i);
-			temp = current->linebuffer;
-			current->linebuffer = ft_substr(current->linebuffer, i + 1, lb_len);
-			free(temp);
-			return (1);
-		}
+		if (str[i] == '\n')
+			 return (i);
 		i++;
-	}
-	if (current->linebuffer[i] == '\0') //should it return last line?
-	{
-		// if (lb_len == 0)
-		// 	*line = NULL;
-		// else
-		// 	*line = ft_substr(current->linebuffer, 0, lb_len);
-		// free(current->linebuffer);
-		// current->linebuffer = NULL;
-		return (0);
 	}
 	return (-1);
 }
 
-ssize_t	read_next(int fd, t_fd_buffer *current)
+void	empty_before_newline(char **r_buf)
 {
-	void	*read_buf;
 	char	*temp;
-	ssize_t	ret_check;
-	size_t	len;
+	int		r_buf_len;
+	int		i;
 
-	read_buf = (void *)malloc(BUFFER_SIZE);
-	temp = NULL;
-	ret_check = read(fd, read_buf, BUFFER_SIZE); //function that cats till newline?
-	if (ret_check == -1 || ret_check == 0) //error or EOF
-		return (ret_check);
-	if (current->linebuffer == NULL)
-		current->linebuffer = ft_substr(read_buf, 0, BUFFER_SIZE);
-	else
+	i = 0;
+	r_buf_len = 0;
+	while ((*r_buf)[r_buf_len])
+		r_buf_len++;
+	temp = (char *)calloc(r_buf_len - newline_index(*r_buf), 1); //that already should have place for nullterm
+	while ((*r_buf)[i + newline_index(*r_buf)])
 	{
-		temp = current->linebuffer;
-		len = ft_strlen(current->linebuffer);
-		current->linebuffer = (char *)calloc(len + BUFFER_SIZE + 1, 1);
-		ft_strlcpy(current->linebuffer, temp, len + BUFFER_SIZE + 1);
-		ft_strlcat(current->linebuffer, read_buf, len + BUFFER_SIZE + 1);
+		temp[i] = (*r_buf)[i + newline_index(*r_buf) + 1];
+		i++;
 	}
-	free(temp);
-	free(read_buf);
-	return (ret_check);	
+	temp[r_buf_len - newline_index(*r_buf)] = '\0';
+	free(*r_buf);
+	*r_buf = temp;
+	temp = NULL;
+}
+
+void	ft_strnjoin(char **s1, char *s2, int stopper) //joins whole s1 with upto s2[stopper - 1], stopper is an number of chars
+{
+	char	*joined_str;
+	int		s1_len;
+	int		i;
+
+	i = 0;
+	s1_len = 0;
+	if ((*s1) && s2)
+	{
+		while ((*s1)[s1_len])
+			s1_len++;
+		joined_str = (char *)calloc(s1_len + stopper + 1, 1);
+		while ((*s1)[i] && i < s1_len)
+		{
+			joined_str[i] = (*s1)[i];
+			i++;
+		}
+		while (i - s1_len < stopper)
+		{
+			joined_str[i] = s2[i - s1_len];
+			i++;
+		}
+		free(*s1);
+		*s1 = joined_str;
+	}
+}
+
+int		read_to_rbuf_til_newline(int fd, char **r_buf)
+{
+	char	*local_buf;
+	int		read_ret;
+
+	local_buf = (char *)calloc(BUFFER_SIZE, 1);
+	while (newline_index(*r_buf) == -1)
+	{
+		read_ret = read(fd, local_buf, BUFFER_SIZE);
+		if (read_ret <= 0)
+			return (read_ret);
+		ft_strnjoin(r_buf, local_buf, read_ret);
+	}
+	free(local_buf);
+	return (1); //means a newline is in r_buf
+}
+
+void	read_from_buf(char **line, char *r_buf)
+{
+	int		nl_i;
+	int		i;
+
+	i = 0;
+	nl_i = newline_index(r_buf);
+	*line = (char *)calloc((nl_i + 1) + 1, 1);
+	while (i < nl_i)
+	{
+		(*line)[i] = r_buf[i];
+		i++;
+	}
+	(*line)[i] = '\n';
 }
 
 int		get_next_line(int fd, char **line)
 {
-	static t_fd_buffer	*fd_buffer_head;
-	t_fd_buffer			*current;
-	ssize_t				ret_check;
+	static char	*r_buf;
+	int			gnl_state; // 1:line been read, 0:EOF reached, -1:error occured
 
-	ret_check = -1;	
-	if (fd_buffer_head == NULL)
-		fd_buffer_head = new_fd_buffer(fd);
+	gnl_state = -1;
+	if (r_buf == NULL)
+		r_buf = (char *)calloc(BUFFER_SIZE + 1, 1);
 
-	current = fd_buffer_head; //starting searching for fd from head
-	while (*(current->fd_saved) != fd && current != NULL) //searching fd, list stays manually till freed
-		current = current->next;
-	if (current == NULL)
-		current = new_fd_buffer(fd);
-	if (current->linebuffer == NULL)
-		ret_check = read_next(fd, current);
-	ret_check = wline_from_linebuffer(current, line);
-	if (ret_check == 1)
-		return (ret_check);
-	while ((has_newline(&(current->linebuffer)) == 0 && ret_check != 0)) //check iff LB cane be returned NULL from read_next
-		ret_check = read_next(fd, current); //check errors in read 0 or -1
-	ret_check = wline_from_linebuffer(current, line);
-	return (ret_check);
+	if (newline_index(r_buf) != -1)
+	{
+		gnl_state = 1;
+		read_from_buf(line, r_buf);
+		empty_before_newline(&r_buf);
+	}
+	else
+	{
+		gnl_state = read_to_rbuf_til_newline(fd, &r_buf);
+		if (gnl_state == 1)
+		{
+			read_from_buf(line, r_buf);
+			empty_before_newline(&r_buf);
+		}
+		else
+			return (gnl_state);
+	}
+	return (gnl_state);
 }
-	
-	
-	
-	// if (current->linebuffer == NULL)
-	// 	ret_check = read_next(fd, current); //check errors in read
