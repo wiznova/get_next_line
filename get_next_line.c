@@ -7,12 +7,13 @@ int		newline_index(char *str) //returns index of newline in a string, or -1
 	int		i;
 
 	i = 0;
-	while (str[i])
-	{
-		if (str[i] == '\n')
-			 return (i);
-		i++;
-	}
+	if (str)
+		while (str[i])
+		{
+			if (str[i] == '\n')
+					return (i);
+			i++;
+		}
 	return (-1);
 }
 
@@ -26,8 +27,8 @@ void	empty_before_newline(char **r_buf)
 	r_buf_len = 0;
 	while ((*r_buf)[r_buf_len])
 		r_buf_len++;
-	temp = (char *)calloc(r_buf_len - newline_index(*r_buf), 1); //that already should have place for nullterm
-	while ((*r_buf)[i + newline_index(*r_buf)])
+	temp = (char *)calloc(r_buf_len - newline_index(*r_buf) + 1, 1); //that already should have place for nullterm
+	while ((*r_buf)[i + newline_index(*r_buf) + 1])
 	{
 		temp[i] = (*r_buf)[i + newline_index(*r_buf) + 1];
 		i++;
@@ -90,19 +91,27 @@ void	read_from_buf(char **line, char *r_buf)
 
 	i = 0;
 	nl_i = newline_index(r_buf);
-	*line = (char *)calloc((nl_i + 1) + 1, 1);
 	if (nl_i >= 0)
+	{
+		*line = (char *)calloc((nl_i + 1) + 1, 1);
 		while (i < nl_i)
 		{
 			(*line)[i] = r_buf[i];
 			i++;
 		}
+	}
 	else
+	{
+		nl_i = 0;
+		while (r_buf[i])
+			printf("nl_i: %d\n", nl_i++);
+		*line = (char *)calloc((nl_i + 1) + 1, 1);
 		while (r_buf[i])
 		{
 			(*line)[i] = r_buf[i];
 			i++;
 		}
+	}
 	(*line)[i] = '\0';
 }
 
