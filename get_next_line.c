@@ -27,7 +27,6 @@ void	empty_before_newline(char **r_buf)
 	r_buf_len = 0;
 	while ((*r_buf)[r_buf_len])
 		r_buf_len++;
-	printf("dif: %d\n", r_buf_len - newline_index(*r_buf));
 	if (r_buf_len - newline_index(*r_buf) >= 1)
 	{
 		temp = (char *)calloc(r_buf_len - newline_index(*r_buf), 1); //that already should have place for nullterm
@@ -105,7 +104,6 @@ void	read_from_buf(char **line, char *r_buf, int r_buf_size)
 
 	i = 0;
 	nl_i = newline_index(r_buf);
-	printf("rbuf_size: %d\n", r_buf_size);
 	if (nl_i >= 0)
 	{
 		*line = (char *)calloc((nl_i + 1) + 1, 1);
@@ -148,7 +146,6 @@ int		get_next_line(int fd, char **line)
 	else
 	{
 		r_buf_size = read_to_rbuf_til_newline(fd, &r_buf);
-		printf("rbuf_size: %d\n", r_buf_size);
 		if (r_buf_size > 0)
 		{
 			gnl_state = 1;
