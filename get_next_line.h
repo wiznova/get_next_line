@@ -6,7 +6,7 @@
 /*   By: skhalil <skhalil@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2019/12/06 13:23:22 by skhalil        #+#    #+#                */
-/*   Updated: 2019/12/09 17:42:29 by skhalil       ########   odam.nl         */
+/*   Updated: 2019/12/09 19:07:39 by skhalil       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,7 @@ int		read_to_rbuf_til_newline(int fd, char **r_buf);
 void	ft_strnjoin(char **s1, char *s2, int	stopper);
 void	empty_before_newline(char **r_buf);
 int		newline_index(char *str);
+void	*ft_calloc(size_t count, size_t size);
 
 
 #endif

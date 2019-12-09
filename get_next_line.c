@@ -29,7 +29,9 @@ void	empty_before_newline(char **r_buf)
 		r_buf_len++;
 	if (r_buf_len - newline_index(*r_buf) >= 1)
 	{
-		temp = (char *)calloc(r_buf_len - newline_index(*r_buf), 1); //that already should have place for nullterm
+		temp = (char *)ft_calloc(r_buf_len - newline_index(*r_buf), 1); //that already should have place for nullterm
+		if (temp == NULL)
+			return ;
 		while ((*r_buf)[i + newline_index(*r_buf) + 1])
 		{
 			temp[i] = (*r_buf)[i + newline_index(*r_buf) + 1];
@@ -59,7 +61,9 @@ void	ft_strnjoin(char **s1, char *s2, int stopper) //joins whole s1 with upto s2
 	{
 		while ((*s1)[s1_len])
 			s1_len++;
-		joined_str = (char *)calloc(s1_len + stopper + 1, 1);
+		joined_str = (char *)ft_calloc(s1_len + stopper + 1, 1);
+		if (joined_str == NULL)
+			return ;
 		while ((*s1)[i])
 		{
 			joined_str[i] = (*s1)[i];
@@ -82,7 +86,11 @@ int		read_to_rbuf_til_newline(int fd, char **r_buf)
 	int		total_read;
 
 	total_read = 0;
-	local_buf = (char *)calloc(BUFFER_SIZE, 1);
+	local_buf = (char *)ft_calloc(BUFFER_SIZE, 1);
+	if (local_buf == NULL)
+		return (-1);
+	if (local_buf == NULL)
+		return (-1);
 	while (newline_index(*r_buf) == -1)
 	{
 		read_ret = read(fd, local_buf, BUFFER_SIZE);
@@ -106,7 +114,9 @@ void	read_from_buf(char **line, char *r_buf, int r_buf_size)
 	nl_i = newline_index(r_buf);
 	if (nl_i >= 0)
 	{
-		*line = (char *)calloc((nl_i + 1) + 1, 1);
+		*line = (char *)ft_calloc((nl_i + 1) + 1, 1);
+		if (*line == NULL)
+			return ;
 		while (i < nl_i)
 		{
 			(*line)[i] = r_buf[i];
@@ -118,7 +128,9 @@ void	read_from_buf(char **line, char *r_buf, int r_buf_size)
 		nl_i = 0;
 		while (r_buf[nl_i])
 			nl_i++;
-		*line = (char *)calloc((nl_i + 1) + 1, 1);
+		*line = (char *)ft_calloc((nl_i + 1) + 1, 1);
+		if (*line == NULL)
+			return ;
 		while (r_buf[i])
 		{
 			(*line)[i] = r_buf[i];
@@ -136,7 +148,11 @@ int		get_next_line(int fd, char **line)
 
 	gnl_state = -1;
 	if (r_buf == NULL)
-		r_buf = (char *)calloc(BUFFER_SIZE + 1, 1);
+	{
+		r_buf = (char *)ft_calloc(BUFFER_SIZE + 1, 1);
+		if (r_buf == NULL)
+			return (-1);
+	}
 	if (newline_index(r_buf) != -1)
 	{
 		gnl_state = 1;
