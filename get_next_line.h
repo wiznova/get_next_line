@@ -6,7 +6,7 @@
 /*   By: skhalil <skhalil@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2019/12/06 13:23:22 by skhalil        #+#    #+#                */
-/*   Updated: 2019/12/09 14:35:35 by skhalil       ########   odam.nl         */
+/*   Updated: 2019/12/09 17:42:29 by skhalil       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 #include <unistd.h>
 
 #include <stdio.h> //delete before submission
-#define BUFFER_SIZE 1 //delete
+#define BUFFER_SIZE 100 //delete
 
 typedef struct	 		s_fd_buffer
 {

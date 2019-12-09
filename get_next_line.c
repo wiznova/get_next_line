@@ -27,16 +27,25 @@ void	empty_before_newline(char **r_buf)
 	r_buf_len = 0;
 	while ((*r_buf)[r_buf_len])
 		r_buf_len++;
-	temp = (char *)calloc(r_buf_len - newline_index(*r_buf) + 1, 1); //that already should have place for nullterm
-	while ((*r_buf)[i + newline_index(*r_buf) + 1])
+	printf("dif: %d\n", r_buf_len - newline_index(*r_buf));
+	if (r_buf_len - newline_index(*r_buf) >= 1)
 	{
-		temp[i] = (*r_buf)[i + newline_index(*r_buf) + 1];
-		i++;
+		temp = (char *)calloc(r_buf_len - newline_index(*r_buf), 1); //that already should have place for nullterm
+		while ((*r_buf)[i + newline_index(*r_buf) + 1])
+		{
+			temp[i] = (*r_buf)[i + newline_index(*r_buf) + 1];
+			i++;
+		}
+		temp[r_buf_len - newline_index(*r_buf) - 1] = '\0';
+		free(*r_buf);
+		*r_buf = temp;
+		temp = NULL;
 	}
-	temp[r_buf_len - newline_index(*r_buf)] = '\0';
-	free(*r_buf);
-	*r_buf = temp;
-	temp = NULL;
+	else
+	{
+		free(*r_buf);
+		*r_buf = NULL;
+	}
 }
 
 void	ft_strnjoin(char **s1, char *s2, int stopper) //joins whole s1 with upto s2[stopper - 1], stopper is an number of chars
@@ -52,7 +61,7 @@ void	ft_strnjoin(char **s1, char *s2, int stopper) //joins whole s1 with upto s2
 		while ((*s1)[s1_len])
 			s1_len++;
 		joined_str = (char *)calloc(s1_len + stopper + 1, 1);
-		while ((*s1)[i] && i < s1_len)
+		while ((*s1)[i])
 		{
 			joined_str[i] = (*s1)[i];
 			i++;
@@ -71,26 +80,32 @@ int		read_to_rbuf_til_newline(int fd, char **r_buf)
 {
 	char	*local_buf;
 	int		read_ret;
+	int		total_read;
 
+	total_read = 0;
 	local_buf = (char *)calloc(BUFFER_SIZE, 1);
 	while (newline_index(*r_buf) == -1)
 	{
 		read_ret = read(fd, local_buf, BUFFER_SIZE);
-		if (read_ret <= 0)
+		if (read_ret < 0)
 			return (read_ret);
+		total_read += read_ret;
+		if (read_ret == 0)
+			return (-total_read);
 		ft_strnjoin(r_buf, local_buf, read_ret);
 	}
 	free(local_buf);
 	return (1); //means a newline is in r_buf
 }
 
-void	read_from_buf(char **line, char *r_buf)
+void	read_from_buf(char **line, char *r_buf, int r_buf_size)
 {
 	int		nl_i;
 	int		i;
 
 	i = 0;
 	nl_i = newline_index(r_buf);
+	printf("rbuf_size: %d\n", r_buf_size);
 	if (nl_i >= 0)
 	{
 		*line = (char *)calloc((nl_i + 1) + 1, 1);
@@ -100,11 +115,11 @@ void	read_from_buf(char **line, char *r_buf)
 			i++;
 		}
 	}
-	else
+	else if (r_buf_size == 0)
 	{
 		nl_i = 0;
-		while (r_buf[i])
-			printf("nl_i: %d\n", nl_i++);
+		while (r_buf[nl_i])
+			nl_i++;
 		*line = (char *)calloc((nl_i + 1) + 1, 1);
 		while (r_buf[i])
 		{
@@ -119,6 +134,7 @@ int		get_next_line(int fd, char **line)
 {
 	static char	*r_buf;
 	int			gnl_state; // 1:line been read, 0:EOF reached, -1:error occured
+	int			r_buf_size;
 
 	gnl_state = -1;
 	if (r_buf == NULL)
@@ -126,20 +142,23 @@ int		get_next_line(int fd, char **line)
 	if (newline_index(r_buf) != -1)
 	{
 		gnl_state = 1;
-		read_from_buf(line, r_buf);
+		read_from_buf(line, r_buf, -1);
 		empty_before_newline(&r_buf);
 	}
 	else
 	{
-		gnl_state = read_to_rbuf_til_newline(fd, &r_buf);
-		if (gnl_state == 1)
+		r_buf_size = read_to_rbuf_til_newline(fd, &r_buf);
+		printf("rbuf_size: %d\n", r_buf_size);
+		if (r_buf_size > 0)
 		{
-			read_from_buf(line, r_buf);
+			gnl_state = 1;
+			read_from_buf(line, r_buf, -1);
 			empty_before_newline(&r_buf);
 		}
-		else if (gnl_state == 0)
+		else if (r_buf_size <= 0)
 		{
-			read_from_buf(line, r_buf);
+			gnl_state = 0;
+			read_from_buf(line, r_buf, 0);
 			free(r_buf);
 		}	
 		else
