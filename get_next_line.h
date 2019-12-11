@@ -6,7 +6,7 @@
 /*   By: skhalil <skhalil@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2019/12/06 13:23:22 by skhalil        #+#    #+#                */
-/*   Updated: 2019/12/11 21:21:13 by skhalil       ########   odam.nl         */
+/*   Updated: 2019/12/11 22:23:28 by skhalil       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,9 +14,6 @@
 # define GET_NEXT_LINE_H
 # include <stdlib.h>
 # include <unistd.h>
-
-# include <stdio.h> //delete before submission
-# define BUFFER_SIZE 100 //delete
 
 void	empty_before_newline(char **r_buf);
 int		read_to_rbuf_til_newline(int fd, char **r_buf);

@@ -6,7 +6,7 @@
 /*   By: skhalil <skhalil@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2019/12/11 19:10:45 by skhalil        #+#    #+#                */
-/*   Updated: 2019/12/11 21:18:53 by skhalil       ########   odam.nl         */
+/*   Updated: 2019/12/11 22:23:06 by skhalil       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,20 +44,15 @@ int		read_to_rbuf_til_newline(int fd, char **r_buf)
 {
 	char	*local_buf;
 	int		read_ret;
-	int		total_read;
 
-	total_read = 0;
 	local_buf = (char *)ft_calloc(BUFFER_SIZE, 1);
 	if (local_buf == NULL)
 		return (-1);
 	while (newline_index(*r_buf) == -1)
 	{
 		read_ret = read(fd, local_buf, BUFFER_SIZE);
-		if (read_ret == -1)
+		if (read_ret == -1 || read_ret == 0)
 			return (read_ret);
-		total_read += read_ret;
-		if (read_ret == 0)
-			return (-total_read);
 		ft_strnjoin(r_buf, local_buf, read_ret);
 	}
 	free(local_buf);
@@ -120,12 +115,14 @@ int		get_next_line(int fd, char **line)
 		gnl_state = read_to_rbuf_til_newline(fd, &r_buf);
 		if (gnl_state == -1)
 			return (gnl_state);
-		else if (gnl_state == 1)
-			read_routine(line, &r_buf, &gnl_state, 0);
-		else if (gnl_state < 0)
-			read_routine(line, &r_buf, &gnl_state, 1);
+		else if (gnl_state == 1 || gnl_state == 0)
+			read_routine(line, &r_buf, &gnl_state, gnl_state == 1 ? 0 : 1);
 		else
+		{
+			if (!r_buf)
+				*line = (char *)ft_calloc(1, 1);
 			return (gnl_state);
+		}
 	}
 	return (gnl_state);
 }
