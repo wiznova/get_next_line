@@ -6,7 +6,7 @@
 /*   By: skhalil <skhalil@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2019/12/06 13:23:22 by skhalil        #+#    #+#                */
-/*   Updated: 2019/12/09 19:07:39 by skhalil       ########   odam.nl         */
+/*   Updated: 2019/12/11 20:10:45 by skhalil       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ size_t			ft_strlcpy(char *dst, const char *src, size_t dstsize);
 t_fd_buffer		*new_fd_buffer(int fd);
 char			*ft_substr(char const *s, unsigned int start, size_t len);
 size_t			ft_strlcat(char *dst, const char *src, size_t dstsize);
-size_t			ft_strlen(const char *s);
+int				ft_strlen(char *str);
 
 int		read_to_rbuf_til_newline(int fd, char **r_buf);
 void	ft_strnjoin(char **s1, char *s2, int	stopper);

@@ -1,6 +1,16 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        ::::::::            */
+/*   get_next_line.c                                    :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: skhalil <skhalil@student.codam.nl>           +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2019/12/11 19:10:45 by skhalil        #+#    #+#                */
+/*   Updated: 2019/12/11 20:42:23 by skhalil       ########   odam.nl         */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "get_next_line.h"
-
-
 
 int		newline_index(char *str) //returns index of newline in a string, or -1
 {
@@ -17,6 +27,16 @@ int		newline_index(char *str) //returns index of newline in a string, or -1
 	return (-1);
 }
 
+int		ft_strlen(char *str)
+{
+	int		i;
+
+	i = 0;
+	while (str[i])
+		i++;
+	return (i);
+}
+
 void	empty_before_newline(char **r_buf)
 {
 	char	*temp;
@@ -24,9 +44,7 @@ void	empty_before_newline(char **r_buf)
 	int		i;
 
 	i = 0;
-	r_buf_len = 0;
-	while ((*r_buf)[r_buf_len])
-		r_buf_len++;
+	r_buf_len = ft_strlen(*r_buf);
 	if (r_buf_len - newline_index(*r_buf) >= 1)
 	{
 		temp = (char *)ft_calloc(r_buf_len - newline_index(*r_buf), 1); //that already should have place for nullterm
@@ -37,10 +55,8 @@ void	empty_before_newline(char **r_buf)
 			temp[i] = (*r_buf)[i + newline_index(*r_buf) + 1];
 			i++;
 		}
-		temp[r_buf_len - newline_index(*r_buf) - 1] = '\0';
 		free(*r_buf);
 		*r_buf = temp;
-		temp = NULL;
 	}
 	else
 	{
@@ -57,26 +73,23 @@ void	ft_strnjoin(char **s1, char *s2, int stopper) //joins whole s1 with upto s2
 
 	i = 0;
 	s1_len = 0;
-	if ((*s1) && s2)
+	while ((*s1)[s1_len])
+		s1_len++;
+	joined_str = (char *)ft_calloc(s1_len + stopper + 1, 1);
+	if (joined_str == NULL)
+		return ;
+	while ((*s1)[i])
 	{
-		while ((*s1)[s1_len])
-			s1_len++;
-		joined_str = (char *)ft_calloc(s1_len + stopper + 1, 1);
-		if (joined_str == NULL)
-			return ;
-		while ((*s1)[i])
-		{
-			joined_str[i] = (*s1)[i];
-			i++;
-		}
-		while (i - s1_len < stopper)
-		{
-			joined_str[i] = s2[i - s1_len];
-			i++;
-		}
-		free(*s1);
-		*s1 = joined_str;
+		joined_str[i] = (*s1)[i];
+		i++;
 	}
+	while (i - s1_len < stopper)
+	{
+		joined_str[i] = s2[i - s1_len];
+		i++;
+	}
+	free(*s1);
+	*s1 = joined_str;
 }
 
 int		read_to_rbuf_til_newline(int fd, char **r_buf)
@@ -105,39 +118,43 @@ int		read_to_rbuf_til_newline(int fd, char **r_buf)
 	return (1); //means a newline is in r_buf
 }
 
-void	read_from_buf(char **line, char *r_buf, int r_buf_size)
+void	read_from_buf(char **line, char *r_buf, int islast)
 {
-	int		nl_i;
-	int		i;
+	int		endline_i;
 
-	i = 0;
-	nl_i = newline_index(r_buf);
-	if (nl_i >= 0)
+	endline_i = islast == 1 ? ft_strlen(r_buf) - 1 : newline_index(r_buf);
+	if (islast != 1)
 	{
-		*line = (char *)ft_calloc((nl_i + 1) + 1, 1);
+		*line = (char *)ft_calloc((endline_i + 1) + 1, 1);
 		if (*line == NULL)
 			return ;
-		while (i < nl_i)
+		while (endline_i > 0)
 		{
-			(*line)[i] = r_buf[i];
-			i++;
+			(*line)[endline_i - 1] = r_buf[endline_i - 1];
+			endline_i--;
 		}
 	}
-	else if (r_buf_size == 0)
+	else if (islast == 1)
 	{
-		nl_i = 0;
-		while (r_buf[nl_i])
-			nl_i++;
-		*line = (char *)ft_calloc((nl_i + 1) + 1, 1);
+		*line = (char *)ft_calloc((endline_i + 1) + 1, 1);
 		if (*line == NULL)
 			return ;
-		while (r_buf[i])
+		while (endline_i >= 0)
 		{
-			(*line)[i] = r_buf[i];
-			i++;
+			(*line)[endline_i] = r_buf[endline_i];
+			endline_i--;
 		}
 	}
-	(*line)[i] = '\0';
+}
+
+void	read_routine(char **line, char **r_buf, int *gnl_state, int islast)
+{
+		*gnl_state = islast == 1 ? 0 : 1;
+		read_from_buf(line, *r_buf, islast); //for now islast is 0 when true
+		if (islast == 0)
+			empty_before_newline(r_buf);
+		else if (islast == 1)
+			free(*r_buf);
 }
 
 int		get_next_line(int fd, char **line)
@@ -148,32 +165,18 @@ int		get_next_line(int fd, char **line)
 
 	gnl_state = -1;
 	if (r_buf == NULL)
-	{
 		r_buf = (char *)ft_calloc(BUFFER_SIZE + 1, 1);
-		if (r_buf == NULL)
-			return (-1);
-	}
+	if (r_buf == NULL)
+		return (-1);
 	if (newline_index(r_buf) != -1)
-	{
-		gnl_state = 1;
-		read_from_buf(line, r_buf, -1);
-		empty_before_newline(&r_buf);
-	}
+		read_routine(line, &r_buf, &gnl_state, 0);
 	else
 	{
 		r_buf_size = read_to_rbuf_til_newline(fd, &r_buf);
 		if (r_buf_size > 0)
-		{
-			gnl_state = 1;
-			read_from_buf(line, r_buf, -1);
-			empty_before_newline(&r_buf);
-		}
+			read_routine(line, &r_buf, &gnl_state, 0);
 		else if (r_buf_size <= 0)
-		{
-			gnl_state = 0;
-			read_from_buf(line, r_buf, 0);
-			free(r_buf);
-		}	
+			read_routine(line, &r_buf, &gnl_state, 1);
 		else
 			return (gnl_state);
 	}

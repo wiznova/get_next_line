@@ -6,7 +6,7 @@
 /*   By: skhalil <skhalil@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2019/12/06 13:23:29 by skhalil        #+#    #+#                */
-/*   Updated: 2019/12/08 13:48:16 by skhalil       ########   odam.nl         */
+/*   Updated: 2019/12/11 20:11:16 by skhalil       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,25 +61,25 @@ size_t			ft_strnlen(char *s, size_t n)
 	return (i);
 }
 
-size_t			ft_strlcat(char *dst, const char *src, size_t dstsize)
-{
-	size_t	len;
+// size_t			ft_strlcat(char *dst, const char *src, size_t dstsize)
+// {
+// 	size_t	len;
 
-	len = ft_strnlen(dst, dstsize);
-	if (dstsize < len)
-		return (len + ft_strlen(src));
-	return (len + ft_strlcpy(dst + len, src, dstsize - len));
-}
+// 	len = ft_strnlen(dst, dstsize);
+// 	if (dstsize < len)
+// 		return (len + ft_strlen(src));
+// 	return (len + ft_strlcpy(dst + len, src, dstsize - len));
+// }
 
-size_t	ft_strlen(const char *s)
-{
-	size_t	i;
+// size_t	ft_strlen(const char *s)
+// {
+// 	size_t	i;
 
-	i = 0;
-	while (s[i])
-		i++;
-	return (i);
-}
+// 	i = 0;
+// 	while (s[i])
+// 		i++;
+// 	return (i);
+// }
 
 void	ft_bzero(void *s, size_t n)
 {
