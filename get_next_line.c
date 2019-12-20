@@ -6,7 +6,7 @@
 /*   By: skhalil <skhalil@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2019/12/11 19:10:45 by skhalil        #+#    #+#                */
-/*   Updated: 2019/12/11 22:23:06 by skhalil       ########   odam.nl         */
+/*   Updated: 2019/12/20 18:21:14 by skhalil       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,11 +33,6 @@ void	empty_before_newline(char **r_buf)
 		free(*r_buf);
 		*r_buf = temp;
 	}
-	else
-	{
-		free(*r_buf);
-		*r_buf = NULL;
-	}
 }
 
 int		read_to_rbuf_til_newline(int fd, char **r_buf)
@@ -56,6 +51,7 @@ int		read_to_rbuf_til_newline(int fd, char **r_buf)
 		ft_strnjoin(r_buf, local_buf, read_ret);
 	}
 	free(local_buf);
+	local_buf = NULL;
 	return (1);
 }
 
@@ -63,28 +59,14 @@ void	read_from_buf(char **line, char *r_buf, int islast)
 {
 	int		endline_i;
 
-	endline_i = islast == 1 ? ft_strlen(r_buf) - 1 : newline_index(r_buf);
-	if (islast != 1)
+	endline_i = islast == 1 ? ft_strlen(r_buf) - 1 : newline_index(r_buf) - 1;
+	*line = (char *)ft_calloc((endline_i + 1) + 1, 1);
+	if (*line == NULL)
+		return ; //change gnl_status
+	while (endline_i >= 0)
 	{
-		*line = (char *)ft_calloc((endline_i + 1) + 1, 1);
-		if (*line == NULL)
-			return ;
-		while (endline_i > 0)
-		{
-			(*line)[endline_i - 1] = r_buf[endline_i - 1];
-			endline_i--;
-		}
-	}
-	else if (islast == 1)
-	{
-		*line = (char *)ft_calloc((endline_i + 1) + 1, 1);
-		if (*line == NULL)
-			return ;
-		while (endline_i >= 0)
-		{
-			(*line)[endline_i] = r_buf[endline_i];
-			endline_i--;
-		}
+		(*line)[endline_i] = r_buf[endline_i];
+		endline_i--;
 	}
 }
 
@@ -94,8 +76,16 @@ void	read_routine(char **line, char **r_buf, int *gnl_state, int islast)
 	read_from_buf(line, *r_buf, islast);
 	if (islast == 0)
 		empty_before_newline(r_buf);
-	else if (islast == 1)
+}
+
+int		on_error(char **r_buf)
+{
+	if (*r_buf != NULL)
+	{
 		free(*r_buf);
+		*r_buf = NULL;
+	}
+	return (-1);
 }
 
 int		get_next_line(int fd, char **line)
@@ -107,22 +97,21 @@ int		get_next_line(int fd, char **line)
 	if (r_buf == NULL)
 		r_buf = (char *)ft_calloc(BUFFER_SIZE + 1, 1);
 	if (r_buf == NULL)
-		return (-1);
+		return (on_error(&r_buf));
 	if (newline_index(r_buf) != -1)
 		read_routine(line, &r_buf, &gnl_state, 0);
 	else
 	{
 		gnl_state = read_to_rbuf_til_newline(fd, &r_buf);
 		if (gnl_state == -1)
-			return (gnl_state);
-		else if (gnl_state == 1 || gnl_state == 0)
-			read_routine(line, &r_buf, &gnl_state, gnl_state == 1 ? 0 : 1);
+			return (on_error(&r_buf));
 		else
-		{
-			if (!r_buf)
-				*line = (char *)ft_calloc(1, 1);
-			return (gnl_state);
-		}
+			read_routine(line, &r_buf, &gnl_state, gnl_state == 1 ? 0 : 1);
+	}
+	if (gnl_state == 0 && r_buf != NULL)
+	{
+		free(r_buf);
+		r_buf = NULL;
 	}
 	return (gnl_state);
 }
