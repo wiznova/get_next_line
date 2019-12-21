@@ -6,7 +6,7 @@
 /*   By: skhalil <skhalil@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2019/12/06 13:23:29 by skhalil        #+#    #+#                */
-/*   Updated: 2019/12/11 21:23:59 by skhalil       ########   odam.nl         */
+/*   Updated: 2019/12/21 14:21:38 by skhalil       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,31 +41,35 @@ int		ft_strlen(char *str)
 	return (i);
 }
 
-void	ft_bzero(void *s, size_t n)
+int		on_error(char **r_buf)
+{
+	if (*r_buf != NULL)
+	{
+		free(*r_buf);
+		*r_buf = NULL;
+	}
+	return (-1);
+}
+
+void	*ft_calloc(size_t count, size_t size)
 {
 	char	*str;
+	void	*ptr;
 	size_t	i;
 
 	i = 0;
-	if (n != 0)
+	ptr = (void *)malloc(count * size);
+	if (ptr == NULL)
+		return (NULL);
+	if (count * size != 0)
 	{
-		str = (char *)s;
-		while (i != n)
+		str = (char *)ptr;
+		while (i < count * size)
 		{
 			str[i] = '\0';
 			i++;
 		}
 	}
-}
-
-void	*ft_calloc(size_t count, size_t size)
-{
-	void	*ptr;
-
-	ptr = (void *)malloc(count * size);
-	if (ptr == NULL)
-		return (NULL);
-	ft_bzero(ptr, count * size);
 	return (ptr);
 }
 
