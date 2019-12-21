@@ -6,7 +6,7 @@
 /*   By: skhalil <skhalil@student.codam.nl>           +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2019/12/11 19:10:45 by skhalil        #+#    #+#                */
-/*   Updated: 2019/12/21 15:11:08 by skhalil       ########   odam.nl         */
+/*   Updated: 2019/12/21 15:31:48 by skhalil       ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,12 +48,11 @@ int		read_to_rbuf_til_newline(int fd, char **r_buf)
 	{
 		read_ret = read(fd, local_buf, BUFFER_SIZE);
 		if (read_ret == -1 || read_ret == 0)
-			return (read_ret);
-		ft_strnjoin(r_buf, local_buf, read_ret);
+			return (free_buf(&local_buf, read_ret));
+		if (ft_strnjoin(r_buf, local_buf, read_ret) == -1)
+			return (free_buf(&local_buf, -1));
 	}
-	free(local_buf);
-	local_buf = NULL;
-	return (1);
+	return (free_buf(&local_buf, 1));
 }
 
 int		read_from_buf(char **line, char *r_buf, int islast)
@@ -94,7 +93,7 @@ int		get_next_line(int fd, char **line)
 	if (r_buf == NULL)
 		r_buf = (char *)ft_calloc(BUFFER_SIZE + 1, 1);
 	if (r_buf == NULL)
-		return (on_error(&r_buf));
+		return (free_buf(&r_buf, -1));
 	if (newline_index(r_buf) != -1)
 		gnl_state = read_routine(line, &r_buf, 0);
 	else
@@ -104,11 +103,8 @@ int		get_next_line(int fd, char **line)
 			gnl_state = read_routine(line, &r_buf, gnl_state == 1 ? 0 : 1);
 	}
 	if (gnl_state == -1)
-		return (on_error(&r_buf));
+		return (free_buf(&r_buf, -1));
 	if (gnl_state == 0 && r_buf != NULL)
-	{
-		free(r_buf);
-		r_buf = NULL;
-	}
+		free_buf(&r_buf, gnl_state);
 	return (gnl_state);
 }
